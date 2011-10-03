@@ -20,6 +20,8 @@
 
 #include <hpp/core/planner.hh>
 
+#include <hpp/constrained/fwd.hh>
+
 namespace hpp {
   namespace constrained {
     /**
@@ -68,13 +70,14 @@ namespace hpp {
        */
       static
       void
-      buildSingleSupportStaticStabilityConstraints(CwsConfigShPtr i_config,
+      buildSingleSupportStaticStabilityConstraints(CkwsConfigShPtr i_config,
 						   bool rightFootSupporting,
 						   std::vector<CjrlGikStateConstraint*> & o_soc);
 
       /**
        * \brief
-       * Initialize constrained motion planning problem
+       * Initialize constrained motion planning problem. Subclasses must first initialize the goal 
+       * configuration generator and the configuration extendor and then call this function.
        * @return KD_OK | KD_ERROR
        */
       virtual
