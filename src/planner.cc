@@ -15,6 +15,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with hpp-constrained-planner.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <iostream>
+
+#include <KineoWorks2/kwsShooterConfigSpace.h>
+#include <KineoModel/kppConfigComponent.h>
+
 #include <jrl/mal/matrixabstractlayer.hh>
 
 #include <hpp/gik/constraint/transformation-constraint.hh>
@@ -26,7 +31,7 @@
 #include <hpp/constrained/config-projector.hh>
 #include <hpp/constrained/kws-constraint.hh>
 
-#include <hpp/constrained/planner.hh>
+#include <hpp/constrained/planner/planner.hh>
 
 
 
@@ -36,6 +41,7 @@ namespace hpp {
       goalConfigGenerator_(NULL),
       configurationExtendor_(NULL)
     {
+      configurationShooter_ = CkwsShooterConfigSpace::create();
     }
     
     Planner::~Planner()
@@ -54,6 +60,8 @@ namespace hpp {
       }
 
       robot->hppSetCurrentConfig(*i_config);
+      robot->computeForwardKinematics();
+      robot->computeForwardKinematics();
  
       CjrlJoint * rightAnkle = robot->rightAnkle();
       matrix4d rightAnkleT = rightAnkle->currentTransformation();
@@ -109,11 +117,15 @@ namespace hpp {
     ktStatus
     Planner::initializeProblem()
     {
+      std::cout << "Planner::InitializeProblem..." << std::endl;
+      
       if(!goalConfigGenerator_) {
+	std::cerr << "No goal config generator" << std::endl;
 	return KD_ERROR;
       }
 
       if(!configurationExtendor_){
+	std::cerr << "No configuration extendor" << std::endl;
 	return KD_ERROR;
       }
       
@@ -121,6 +133,7 @@ namespace hpp {
 	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot, robotIthProblem (0));
 
       if (!robot) {
+	std::cerr << "Expecting a HumanoidRobot" << std::endl;
 	return KD_ERROR;
       }
 
@@ -137,6 +150,9 @@ namespace hpp {
 
       CkwsRoadmapShPtr roadmap = CkwsRoadmap::create(robot);
       CkwsDiffusingRdmBuilderShPtr rdmBuilder = DiffusingRoadmapBuilder::create(roadmap,configurationExtendor_);
+
+      CkwsDiffusionShooterShPtr shooter = CkwsShooterConfigSpace::create();
+      rdmBuilder->diffusionShooter(shooter);
   
       rdmBuilder->diffuseFromProblemStart(true);
       rdmBuilder->diffuseFromProblemGoal(true);
@@ -145,16 +161,20 @@ namespace hpp {
 
       steeringMethodIthProblem(0, CkwsSMLinear::create ());
 
+      KwsConstraintShPtr constraint = KwsConstraint::create("Whole-Body Constraint", configurationExtendor_);
+      robot->userConstraints()->add(constraint);
+
       CkwsConfigShPtr initConfig;
       robot->getCurrentConfig(initConfig);
       initConfIthProblem(0,initConfig);
+      robot->addConfigComponent(CkppConfigComponent::create(initConfig,std::string("Init config")));
 
-      if (generateGoalConfigurations(0,2) != KD_OK) {
+      if (generateGoalConfigurations(0,1) != KD_OK) {
+	std::cerr << "Failed to generate goal configs" << std::endl;
 	return KD_ERROR;
       }
-
-      KwsConstraintShPtr constraint = KwsConstraint::create("Whole-Body Constraint", configurationExtendor_);
-      robot->userConstraints()->add(constraint);
+      
+      std::cout << "Found goal configurations" << std::endl;
 
       CkwsLoopOptimizerShPtr optimizer = 
 	CkwsRandomOptimizer::create();
@@ -175,15 +195,19 @@ namespace hpp {
       }
       CkppDeviceComponentShPtr robot = robotIthProblem(rank);
       CkwsRoadmapBuilderShPtr rdmBuilder = roadmapBuilderIthProblem(rank);
+      
+      CkwsConfigShPtr currentCfg;
+      robot->getCurrentConfig(currentCfg);
+
 
       unsigned int nb_validConfigs=0;
       unsigned int nb_try=0;
-      unsigned int nb_maxTry=10000;
+      unsigned int nb_maxTry=50;
       while ( (nb_try < nb_maxTry) 
 	      && (nb_validConfigs < nb_configs) ) { //Shoot config
 
-	CkwsConfigShPtr randomConfig = CkwsConfig::create (robot);
-	randomConfig->randomize();
+	CkwsConfigShPtr randomConfig = CkwsConfig::create(*currentCfg);
+	CkwsDiffusionShooter::gaussianShoot(*randomConfig,0.01);
 
 	if (goalConfigGenerator_->project(*randomConfig) == KD_OK) { //Projection worked
 	  robot->setCurrentConfig(*randomConfig);
@@ -193,6 +217,7 @@ namespace hpp {
 	    CkwsNodeShPtr newNode(rdmBuilder->roadmapNode(*randomConfig));
 	    goalConfIthProblem(rank,randomConfig);
 	    if (rdmBuilder->addGoalNode(newNode) == KD_OK) {
+	      robot->addConfigComponent(CkppConfigComponent::create( randomConfig,std::string("Goal config")));
 	      nb_validConfigs++;
 	    }
 	  }

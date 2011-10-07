@@ -25,8 +25,8 @@ SET(PROJECT_DESCRIPTION "HPP classes used for humanoid motion planning on constr
 SET(PROJECT_URL "https://github.com/laas/hpp-constrained-planner")
 
 SET(${PROJECT_NAME}_HEADERS
-  ${CMAKE_SOURCE_DIR}/include/hpp/constrained/planner.hh
-  ${CMAKE_SOURCE_DIR}/include/hpp/constrained/grasping-planner.hh
+  ${CMAKE_SOURCE_DIR}/include/hpp/constrained/planner/planner.hh
+  ${CMAKE_SOURCE_DIR}/include/hpp/constrained/planner/grasping-planner.hh
 )
 
 SET(CXX_DISABLE_WERROR 1)
@@ -37,6 +37,9 @@ SETUP_PROJECT()
 ADD_REQUIRED_DEPENDENCY("hpp-constrained")
 ADD_REQUIRED_DEPENDENCY("hpp-core")
 
+# Add dependency toward hpp-constrained-planner library in pkg-config file.
+PKG_CONFIG_APPEND_LIBS("hpp-constrained-planner")
+
 # Search for Boost.
 SET(BOOST_COMPONENTS
   filesystem system thread program_options unit_test_framework)
@@ -45,9 +48,9 @@ SEARCH_FOR_BOOST()
 ADD_SUBDIRECTORY(src)
 
 # Documentation produced by doxygen
-# INCLUDE(FindDoxygen)
-# IF(DOXYGEN_FOUND)
-#   add_subdirectory(doc)
-# ENDIF(DOXYGEN_FOUND)
+INCLUDE(FindDoxygen)
+IF(DOXYGEN_FOUND)
+  add_subdirectory(doc)
+ENDIF(DOXYGEN_FOUND)
 
 SETUP_PROJECT_FINALIZE()

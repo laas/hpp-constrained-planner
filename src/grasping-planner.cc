@@ -15,13 +15,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with hpp-constrained-planner.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <KineoKCDModel/kppKCDBox.h>
+
 #include <hpp/model/humanoid-robot.hh>
+#include <hpp/model/joint.hh>
+
+#include <hpp/gik/robot/mask-factory.hh>
 
 #include <hpp/constrained/roadmap-builder.hh>
 #include <hpp/constrained/config-projector.hh>
 #include <hpp/constrained/kws-constraint.hh>
 
-#include <hpp/constrained/grasping-planner.hh>
+#include <hpp/constrained/planner/grasping-planner.hh>
 
 
 namespace hpp {
@@ -31,6 +36,7 @@ namespace hpp {
       target_(i_target),
       positionConstraint_(NULL)
     {
+      srand(time(NULL));
     }
 
     GraspingPlanner::~GraspingPlanner()
@@ -47,33 +53,47 @@ namespace hpp {
     }
 
     ktStatus
-    GraspingPlanner::initializeProblem() 
+    GraspingPlanner::initializeProblem()
     {
-      hpp::model::HumanoidRobotShPtr robot =  
+      hpp::model::HumanoidRobotShPtr robot =
 	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot, robotIthProblem (0));
-      
+
       if (!robot) {
 	return KD_ERROR;
       }
       CkwsConfigShPtr halfSittingConfig;
       robot->getCurrentConfig(halfSittingConfig);
-      
-      CjrlJoint * wrist = isRightHand_ ? robot->rightWrist() : robot->leftWrist() ;
 
+      /* Build gik solver weights */
+      ChppGikMaskFactory maskFactory(&(*robot));
+      vectorN weightVector = maskFactory.weightsDoubleSupport ();
+
+      /* Initialize hand position constraint */
+      CjrlJoint * wrist = isRightHand_ ? robot->rightWrist() : robot->leftWrist() ;
       positionConstraint_ = new ChppGikPositionConstraint (*robot,*wrist,vector3d(0,0,0),target_);
 
+      /* Initialize goal manifold stack of constraints */
       std::vector<CjrlGikStateConstraint*>  goalSoc;
       buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,goalSoc);
       goalSoc.push_back(positionConstraint_);
-
       goalConfigGenerator_ = new ConfigProjector(robot);
       goalConfigGenerator_->setConstraints(goalSoc);
+      goalConfigGenerator_->getGikSolver()->weights(weightVector);
 
+      /* Initialize planning manifold stack of constraints */
       std::vector<CjrlGikStateConstraint*> planningSoc;
       buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,planningSoc);
-
       configurationExtendor_ = new ConfigExtendor(robot);
       configurationExtendor_->setConstraints(planningSoc);
+      configurationExtendor_->getGikSolver()->weights(weightVector);
+
+      /* Temporary for test, include a kcd box */
+      CkppKCDBoxShPtr box =  CkppKCDBox::create(std::string("Obstacle"),0.7,1.2,0.7);
+      CkitMat4 boxPos;
+      boxPos.translate(0.65,0,0.35);
+      box->setAbsolutePosition(boxPos);
+
+      addObstacle(box,false);
 
       return (Planner::initializeProblem());
     }
