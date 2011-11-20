@@ -83,6 +83,20 @@ namespace hpp {
 
       /**
        * \brief
+       * Builds a stack of constraints corresponding to sliding double support stability, 
+       * i.e the two feet are flat on the ground, at a fixed relative position, 
+       * the relative position of the CoM is also fixed, but the robot
+       * is allowed to move globally.
+       * @param i_config Configuration where the feet are at the desired configuration
+       * @param o_soc Output stack of constraints
+       */
+      static
+      void
+      buildDoubleSupportSlidingStaticStabilityConstraints(CkwsConfigShPtr i_config,
+							  std::vector<CjrlGikStateConstraint*> & o_soc);
+
+      /**
+       * \brief
        * Initialize constrained motion planning problem. Subclasses must first initialize the goal 
        * configuration generator and the configuration extendor and then call this function.
        * @return KD_OK | KD_ERROR
