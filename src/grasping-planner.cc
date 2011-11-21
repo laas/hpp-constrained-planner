@@ -74,8 +74,8 @@ namespace hpp {
 
       /* Initialize goal manifold stack of constraints */
       std::vector<CjrlGikStateConstraint*>  goalSoc;
-      buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,goalSoc);
-      goalSoc.push_back(positionConstraint_);
+      buildDoubleSupportSlidingStaticStabilityConstraints(halfSittingConfig,goalSoc);
+      //goalSoc.push_back(positionConstraint_);
       goalConfigGenerator_ = new ConfigProjector(robot);
       goalConfigGenerator_->setConstraints(goalSoc);
       goalConfigGenerator_->getGikSolver()->weights(weightVector);
@@ -86,14 +86,6 @@ namespace hpp {
       configurationExtendor_ = new ConfigExtendor(robot);
       configurationExtendor_->setConstraints(planningSoc);
       configurationExtendor_->getGikSolver()->weights(weightVector);
-
-      /* Temporary for test, include a kcd box */
-      CkppKCDBoxShPtr box =  CkppKCDBox::create(std::string("Obstacle"),0.7,1.2,0.7);
-      CkitMat4 boxPos;
-      boxPos.translate(0.65,0,0.35);
-      box->setAbsolutePosition(boxPos);
-
-      addObstacle(box,false);
 
       return (Planner::initializeProblem());
     }

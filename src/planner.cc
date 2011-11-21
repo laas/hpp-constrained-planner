@@ -228,7 +228,7 @@ namespace hpp {
       initConfIthProblem(0,initConfig);
       robot->addConfigComponent(CkppConfigComponent::create(initConfig,std::string("Init config")));
 
-      if (generateGoalConfigurations(0,1) != KD_OK) {
+      if (generateGoalConfigurations(0,5) != KD_OK) {
 	std::cerr << "Failed to generate goal configs" << std::endl;
 	return KD_ERROR;
       }
@@ -261,7 +261,7 @@ namespace hpp {
 
       unsigned int nb_validConfigs=0;
       unsigned int nb_try=0;
-      unsigned int nb_maxTry=50;
+      unsigned int nb_maxTry=200;
       while ( (nb_try < nb_maxTry) 
 	      && (nb_validConfigs < nb_configs) ) { //Shoot config
 
