@@ -170,7 +170,7 @@ namespace hpp {
       o_soc.push_back(rightAnklePlaneConstraint);
       o_soc.push_back(rightAnkleParallelConstraint);
       o_soc.push_back(leftAnkleConstraint);
-      o_soc.push_back(comConstraint);
+      //o_soc.push_back(comConstraint);
     }
 
     ktStatus
