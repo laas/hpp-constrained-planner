@@ -80,9 +80,11 @@ namespace hpp {
       goalConfigGenerator_->setConstraints(goalSoc);
       goalConfigGenerator_->getGikSolver()->weights(weightVector);
 
+      std::cout << "Number of constraints: " << goalSoc.size() << std::endl;
+
       /* Initialize planning manifold stack of constraints */
       std::vector<CjrlGikStateConstraint*> planningSoc;
-      buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,planningSoc);
+      buildDoubleSupportSlidingStaticStabilityConstraints(halfSittingConfig,planningSoc);
       configurationExtendor_ = new ConfigExtendor(robot);
       configurationExtendor_->setConstraints(planningSoc);
       configurationExtendor_->getGikSolver()->weights(weightVector);
