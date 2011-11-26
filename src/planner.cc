@@ -34,6 +34,7 @@
 #include <hpp/constrained/roadmap-builder.hh>
 #include <hpp/constrained/config-projector.hh>
 #include <hpp/constrained/kws-constraint.hh>
+#include <hpp/constrained/config-optimizer.hh>
 
 #include <hpp/constrained/planner/planner.hh>
 
@@ -177,7 +178,8 @@ namespace hpp {
     Planner::initializeProblem()
     {
       std::cout << "Planner::InitializeProblem..." << std::endl;
-      
+     
+ 
       if(!goalConfigGenerator_) {
 	std::cerr << "No goal config generator" << std::endl;
 	return KD_ERROR;
@@ -195,6 +197,10 @@ namespace hpp {
 	std::cerr << "Expecting a HumanoidRobot" << std::endl;
 	return KD_ERROR;
       }
+
+      CkwsConfigShPtr hsConfig; 
+      robot->getCurrentConfig(hsConfig);
+
 
       std::string property,value;
       property="ComputeZMP"; value="false";robot->setProperty ( property,value );
@@ -228,13 +234,26 @@ namespace hpp {
       initConfIthProblem(0,initConfig);
       robot->addConfigComponent(CkppConfigComponent::create(initConfig,std::string("Init config")));
 
-      if (generateGoalConfigurations(0,1) != KD_OK) {
+      if (generateGoalConfigurations(0,5) != KD_OK) {
 	std::cerr << "Failed to generate goal configs" << std::endl;
 	return KD_ERROR;
       }
       
       std::cout << "Found goal configurations" << std::endl;
 
+      std::cout << "Optimizing goal configurations" << std::endl;
+      ConfigOptimizer optimizer(robot,configurationExtendor_,hsConfig);
+
+      TNodeList::iterator it;
+      for(it = rdmBuilder->beginGoalNodes(); it!=rdmBuilder->endGoalNodes();it++) {
+	CkwsConfigShPtr goalCfg = CkwsConfig::create((*it)->config());
+	CkwsPathShPtr optPath = optimizer.optimizeConfig(goalCfg);
+	if (!optPath->isEmpty()) {
+	  CkppPathComponentShPtr pathCpt = CkppPathComponent::create(optPath,std::string("Optimization Path"));
+	  std::cout << "Found a non-empty optimization path.\n";
+	} 
+      }	     
+				
       CkwsLoopOptimizerShPtr optimizer = 
 	CkwsRandomOptimizer::create();
       optimizer->penetration (hppProblem (0)->penetration ());

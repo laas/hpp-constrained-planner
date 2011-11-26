@@ -84,7 +84,7 @@ namespace hpp {
       std::vector<CjrlGikStateConstraint*> planningSoc;
       buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,planningSoc);
       configurationExtendor_ = new ConfigExtendor(robot);
-      configurationExtendor_->setConstraints(planningSoc);
+      configurationExtendor_->setConstraints(goalSoc);
       configurationExtendor_->getGikSolver()->weights(weightVector);
 
       /* Temporary for test, include a kcd box */
