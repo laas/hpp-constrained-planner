@@ -157,7 +157,7 @@ namespace hpp {
 	new ChppGikRelativeTransformationConstraint(*robot,*leftAnkle,rightAnkle,relativeLeftAnkleT);
   
       vector3d com = robot->positionCenterOfMass();
-      vector4d comH(com[0],com[1],com[2]);
+      vector4d comH(com[0],com[1],com[2],1);
       vector4d relativeComPos;
       MAL_S4x4_C_eq_A_by_B ( relativeComPos,
 			     inverseRightAnkleT,
