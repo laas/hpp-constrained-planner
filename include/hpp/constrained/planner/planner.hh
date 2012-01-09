@@ -105,12 +105,19 @@ namespace hpp {
       ktStatus 
       initializeProblem();
 
-      /**
-       * \brief Generate random goal configurations.
-       * @param rank Id of problem in vector
-       * @param nb_configs Number of goal configuration to generate
-       * @return KD_OK | KD_ERROR
-       */
+      /// Generate random goal configurations.
+      /// \param rank Id of problem in vector
+      /// \param nb_configs Number of goal configuration to generate
+      /// \return KD_OK if succeeded in producing the required number of
+      /// configurations, KD_ERROR otherwise.
+      ///
+      /// Generate a random configuration about the current robot
+      /// configuration, project this configuration using
+      /// Planner::goalConfigGenerator_, test for collision. Perform 50
+      /// trials. Each success is added as a goal node to the problem
+      /// roadmap builder. The last success is set as goal
+      /// configuration for the problem
+      /// (hpp::core::Planner::goalConfIthProblem).
       ktStatus
       generateGoalConfigurations(unsigned int rank, unsigned int nb_configs);
 
