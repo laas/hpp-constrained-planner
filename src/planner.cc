@@ -276,7 +276,6 @@ namespace hpp {
 	    CkwsNodeShPtr newNode(rdmBuilder->roadmapNode(*randomConfig));
 	    goalConfIthProblem(rank,randomConfig);
 	    if (rdmBuilder->addGoalNode(newNode) == KD_OK) {
-	      robot->addConfigComponent(CkppConfigComponent::create( randomConfig,std::string("Goal config")));
 	      nb_validConfigs++;
 	    }
 	  }
