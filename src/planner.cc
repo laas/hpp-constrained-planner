@@ -19,6 +19,7 @@
 
 #include <KineoWorks2/kwsShooterConfigSpace.h>
 #include <KineoModel/kppConfigComponent.h>
+#include <KineoModel/kppSMLinearComponent.h>
 
 #include <jrl/mal/matrixabstractlayer.hh>
 
@@ -217,8 +218,7 @@ namespace hpp {
       rdmBuilder->diffuseFromProblemGoal(true);
 
       roadmapBuilderIthProblem ( 0, rdmBuilder);
-
-      steeringMethodIthProblem(0, CkwsSMLinear::create ());
+      steeringMethodIthProblem(0, CkppSMLinearComponent::create ());
 
       KwsConstraintShPtr constraint = KwsConstraint::create("Whole-Body Constraint", configurationExtendor_);
       robot->userConstraints()->add(constraint);
