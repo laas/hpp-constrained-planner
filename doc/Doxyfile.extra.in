@@ -1,1 +1,4 @@
 INPUT                  = @CMAKE_SOURCE_DIR@/include
+
+TAGFILES = \
+	 @HPP_CONSTRAINED_DOXYGENDOCDIR@/hpp-constrained.doxytag=@HPP_CONSTRAINED_DOXYGENDOCDIR@
