@@ -36,6 +36,7 @@
 
 #include <hpp/constrained/roadmap-builder.hh>
 #include <hpp/constrained/config-projector.hh>
+#include <hpp/constrained/goal-config-generator.hh>
 #include <hpp/constrained/kws-constraint.hh>
 
 #include <hpp/constrained/planner/planner.hh>
@@ -309,13 +310,12 @@ namespace hpp {
     }
 
     void
-    Planner::setGoalConfigGenerator(ConfigProjector * i_goalConfigGenerator)
+    Planner::setGoalConfigGenerator(GoalConfigGenerator* goalConfigGenerator)
     {
-      goalConfigGenerator_ = i_goalConfigGenerator;
+      goalConfigGenerator_ = goalConfigGenerator;
     }
 
-    ConfigProjector *
-    Planner::getGoalConfigGenerator()
+    GoalConfigGenerator* Planner::getGoalConfigGenerator()
     {
       return goalConfigGenerator_;
     }

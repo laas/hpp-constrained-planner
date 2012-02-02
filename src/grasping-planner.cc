@@ -24,6 +24,7 @@
 
 #include <hpp/constrained/roadmap-builder.hh>
 #include <hpp/constrained/config-projector.hh>
+#include <hpp/constrained/goal-config-generator.hh>
 #include <hpp/constrained/kws-constraint.hh>
 
 #include <hpp/constrained/planner/grasping-planner.hh>
@@ -71,9 +72,11 @@ namespace hpp {
       std::vector<CjrlGikStateConstraint*>  goalSoc;
       buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,goalSoc);
       goalSoc.push_back(positionConstraint_);
-      goalConfigGenerator_ = new ConfigProjector(robot);
-      goalConfigGenerator_->setConstraints(goalSoc);
-      goalConfigGenerator_->getGikSolver()->weights(weightVector);
+
+      GoalConfigGenerator* goalConfigGenerator = new GoalConfigGenerator (robot);
+      goalConfigGenerator->setConstraints(goalSoc);
+      goalConfigGenerator->getGikSolver()->weights(weightVector);
+      setGoalConfigGenerator (goalConfigGenerator);
 
       /* Initialize planning manifold stack of constraints */
       std::vector<CjrlGikStateConstraint*> planningSoc;

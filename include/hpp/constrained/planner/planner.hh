@@ -121,13 +121,12 @@ namespace hpp {
       /// Set the goal configuration generator.
       /// \param i_goalConfigGenerator New goal configuration generator
       void
-      setGoalConfigGenerator(ConfigProjector * i_goalConfigGenerator);
+      setGoalConfigGenerator(GoalConfigGenerator* i_goalConfigGenerator);
 
       /// Get the goal configuration generator.
       /// \return o_goalConfigGenerator Goal configuration generator currently
       /// used
-      ConfigProjector *
-      getGoalConfigGenerator();
+      GoalConfigGenerator* getGoalConfigGenerator();
 
       /// \brief Set the configuration extendor.
       /// \param i_configExtendor New configuration extendor
@@ -139,10 +138,11 @@ namespace hpp {
       ConfigExtendor* getConfigurationExtendor();
 
 
-    protected:
+    private:
       /// Configuration projector used to generate goal configurations.
-      ConfigProjector * goalConfigGenerator_;
+      GoalConfigGenerator* goalConfigGenerator_;
 
+    protected:
       /// Configuration extendor, used by the roadmap builder to plan a
       /// constrained path
       ConfigExtendor * configurationExtendor_;
