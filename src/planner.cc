@@ -30,6 +30,8 @@
 #include <hpp/gik/constraint/plane-constraint.hh>
 #include <hpp/gik/constraint/parallel-constraint.hh>
 
+#include <kwsIO/kwsioConfig.h>
+#include <hpp/util/debug.hh>
 #include <hpp/model/humanoid-robot.hh>
 
 #include <hpp/constrained/roadmap-builder.hh>
@@ -251,6 +253,7 @@ namespace hpp {
 					unsigned int nb_configs)
     {
       if (!goalConfigGenerator_) {
+	hppDout (error, "goalConfigGenerator_ not defined.");
 	return KD_ERROR;
       }
       CkppDeviceComponentShPtr robot = robotIthProblem(rank);
@@ -269,22 +272,35 @@ namespace hpp {
 	CkwsConfigShPtr randomConfig = CkwsConfig::create(*currentCfg);
 	CkwsDiffusionShooter::gaussianShoot(*randomConfig,0.01);
 
-	if (goalConfigGenerator_->project(*randomConfig) == KD_OK) { //Projection worked
+	if (goalConfigGenerator_->project(*randomConfig) == KD_OK) {
+	  //Projection worked
+	  hppDout (info, "config: " << *randomConfig);
 	  robot->setCurrentConfig(*randomConfig);
-	  
-	  if(!robot->collisionTest()) { //Configuration is collision free
 
+	  if(!robot->collisionTest()) { //Configuration is collision free
+	    hppDout (info, "is collision free.");
 	    CkwsNodeShPtr newNode(rdmBuilder->roadmapNode(*randomConfig));
 	    goalConfIthProblem(rank,randomConfig);
 	    if (rdmBuilder->addGoalNode(newNode) == KD_OK) {
 	      nb_validConfigs++;
+	    } else {
+	      hppDout (info,
+		       "but could not be added as goal config to the roadmap.");
 	    }
 	  }
+	  else {
+	    hppDout (info, "is in collision.");
+	  }
+	} else {
+	  hppDout (info, "Projection failed: " << *randomConfig);
 	}
 
 	nb_try++;
       }
       if (nb_validConfigs < nb_configs) {
+	hppDout (error, "Failed to generate " << nb_configs
+		 << " goal configurations, generated only "
+		 << nb_validConfigs);
 	return KD_ERROR;
       }
       return KD_OK;
