@@ -136,8 +136,7 @@ namespace hpp {
 
       /// Get the configuration extendor.
       /// \return o_configExtendor Configuration extendor currently used
-      ConfigExtendor *
-      getConfigurationExtendor();
+      ConfigExtendor* getConfigurationExtendor();
 
 
     protected:
@@ -149,7 +148,7 @@ namespace hpp {
       ConfigExtendor * configurationExtendor_;
 
       /// Random configuration shooter used to generate random goal
-      /// configruations
+      /// configurations
       CkwsDiffusionShooterShPtr configurationShooter_;
 
     };

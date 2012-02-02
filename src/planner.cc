@@ -48,7 +48,7 @@ namespace hpp {
     {
       configurationShooter_ = CkwsShooterConfigSpace::create();
     }
-    
+
     Planner::~Planner()
     {
     }
@@ -57,7 +57,7 @@ namespace hpp {
     Planner::buildDoubleSupportStaticStabilityConstraints(CkwsConfigShPtr i_config,
 							  std::vector<CjrlGikStateConstraint*> & o_soc)
     {
-     hpp::model::HumanoidRobotShPtr robot = 
+     hpp::model::HumanoidRobotShPtr robot =
 	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot,i_config->device());
 
       if (!robot) {
@@ -67,10 +67,10 @@ namespace hpp {
       robot->hppSetCurrentConfig(*i_config);
       robot->computeForwardKinematics();
       robot->computeForwardKinematics();
- 
+
       CjrlJoint * rightAnkle = robot->rightAnkle();
       matrix4d rightAnkleT = rightAnkle->currentTransformation();
-  
+
       CjrlJoint * leftAnkle = robot->leftAnkle();
       matrix4d leftAnkleT = leftAnkle->currentTransformation();
 
@@ -79,9 +79,9 @@ namespace hpp {
 
       ChppGikTransformationConstraint * leftAnkleConstraint =
 	new ChppGikTransformationConstraint(*robot,*leftAnkle,vector3d(0,0,0),leftAnkleT);
-  
+
       vector3d comPos = robot->positionCenterOfMass();
-      ChppGikComConstraint * comConstraint = 
+      ChppGikComConstraint * comConstraint =
 	new ChppGikComConstraint(*robot,comPos[0],comPos[1]);
 
       o_soc.clear();
@@ -95,7 +95,7 @@ namespace hpp {
 							  bool rightFootSupporting,
 							  std::vector<CjrlGikStateConstraint*> & o_soc)
     {
-      hpp::model::HumanoidRobotShPtr robot = 
+      hpp::model::HumanoidRobotShPtr robot =
 	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot,i_config->device());
 
       if (!robot) {
@@ -111,19 +111,19 @@ namespace hpp {
 	new ChppGikTransformationConstraint(*robot,*ankle,vector3d(0,0,0),ankleT);
 
       vector3d comPos = robot->positionCenterOfMass();
-      ChppGikComConstraint * comConstraint = 
+      ChppGikComConstraint * comConstraint =
 	new ChppGikComConstraint(*robot,comPos[0],comPos[1]);
 
       o_soc.clear();
       o_soc.push_back(ankleConstraint);
-      o_soc.push_back(comConstraint);    
+      o_soc.push_back(comConstraint);
     }
 
     void
     Planner::buildDoubleSupportSlidingStaticStabilityConstraints(CkwsConfigShPtr i_config,
 								 std::vector<CjrlGikStateConstraint*> & o_soc)
     {
-     hpp::model::HumanoidRobotShPtr robot = 
+     hpp::model::HumanoidRobotShPtr robot =
 	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot,i_config->device());
 
       if (!robot) {
@@ -133,10 +133,10 @@ namespace hpp {
       robot->hppSetCurrentConfig(*i_config);
       robot->computeForwardKinematics();
       robot->computeForwardKinematics();
- 
+
       CjrlJoint * rightAnkle = robot->rightAnkle();
       matrix4d rightAnkleT = rightAnkle->currentTransformation();
-  
+
       CjrlJoint * leftAnkle = robot->leftAnkle();
       matrix4d leftAnkleT = leftAnkle->currentTransformation();
 
@@ -153,10 +153,10 @@ namespace hpp {
 
       ChppGikParallelConstraint * rightAnkleParallelConstraint =
 	new ChppGikParallelConstraint(*robot,*rightAnkle,vector3d(0,0,1),vector3d(0,0,1));
-				      
+
       ChppGikRelativeTransformationConstraint * leftAnkleConstraint =
 	new ChppGikRelativeTransformationConstraint(*robot,*leftAnkle,rightAnkle,relativeLeftAnkleT);
-  
+
       vector3d com = robot->positionCenterOfMass();
       vector4d comH(com[0],com[1],com[2],1);
       vector4d relativeComPos;
@@ -164,7 +164,7 @@ namespace hpp {
 			     inverseRightAnkleT,
 			     comH);
 
-      ChppGikRelativeComConstraint * comConstraint = 
+      ChppGikRelativeComConstraint * comConstraint =
 	new ChppGikRelativeComConstraint(*robot,rightAnkle,relativeComPos[0],relativeComPos[1]);
 
       o_soc.clear();
@@ -178,7 +178,7 @@ namespace hpp {
     Planner::initializeProblem()
     {
       std::cout << "Planner::InitializeProblem..." << std::endl;
-      
+
       if(!goalConfigGenerator_) {
 	std::cerr << "No goal config generator" << std::endl;
 	return KD_ERROR;
@@ -188,8 +188,8 @@ namespace hpp {
 	std::cerr << "No configuration extendor" << std::endl;
 	return KD_ERROR;
       }
-      
-      hpp::model::HumanoidRobotShPtr robot =  
+
+      hpp::model::HumanoidRobotShPtr robot =
 	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot, robotIthProblem (0));
 
       if (!robot) {
@@ -213,7 +213,7 @@ namespace hpp {
 
       CkwsDiffusionShooterShPtr shooter = CkwsShooterConfigSpace::create();
       rdmBuilder->diffusionShooter(shooter);
-  
+
       rdmBuilder->diffuseFromProblemStart(true);
       rdmBuilder->diffuseFromProblemGoal(true);
 
@@ -232,29 +232,30 @@ namespace hpp {
 	std::cerr << "Failed to generate goal configs" << std::endl;
 	return KD_ERROR;
       }
-      
+
       std::cout << "Found goal configurations" << std::endl;
 
-      CkwsLoopOptimizerShPtr optimizer = 
+      CkwsLoopOptimizerShPtr optimizer =
 	CkwsRandomOptimizer::create();
       optimizer->penetration (hppProblem (0)->penetration ());
-      
+
       pathOptimizerIthProblem(0,optimizer);
-      
+
       hppProblem (0)->alwaysOptimize (true);
 
       return KD_OK;
     }
 
     ktStatus
-    Planner::generateGoalConfigurations(unsigned int rank, unsigned int nb_configs)
+    Planner::generateGoalConfigurations(unsigned int rank,
+					unsigned int nb_configs)
     {
       if (!goalConfigGenerator_) {
 	return KD_ERROR;
       }
       CkppDeviceComponentShPtr robot = robotIthProblem(rank);
       CkwsRoadmapBuilderShPtr rdmBuilder = roadmapBuilderIthProblem(rank);
-      
+
       CkwsConfigShPtr currentCfg;
       robot->getCurrentConfig(currentCfg);
 
@@ -262,7 +263,7 @@ namespace hpp {
       unsigned int nb_validConfigs=0;
       unsigned int nb_try=0;
       unsigned int nb_maxTry=50;
-      while ( (nb_try < nb_maxTry) 
+      while ( (nb_try < nb_maxTry)
 	      && (nb_validConfigs < nb_configs) ) { //Shoot config
 
 	CkwsConfigShPtr randomConfig = CkwsConfig::create(*currentCfg);
@@ -270,7 +271,7 @@ namespace hpp {
 
 	if (goalConfigGenerator_->project(*randomConfig) == KD_OK) { //Projection worked
 	  robot->setCurrentConfig(*randomConfig);
-
+	  
 	  if(!robot->collisionTest()) { //Configuration is collision free
 
 	    CkwsNodeShPtr newNode(rdmBuilder->roadmapNode(*randomConfig));
@@ -281,12 +282,12 @@ namespace hpp {
 	  }
 	}
 
-	nb_try++;	
+	nb_try++;
       }
       if (nb_validConfigs < nb_configs) {
 	return KD_ERROR;
       }
-      return KD_OK;	
+      return KD_OK;
     }
 
     void
