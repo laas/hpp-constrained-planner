@@ -41,11 +41,6 @@ namespace hpp {
 
     GraspingPlanner::~GraspingPlanner()
     {
-      if(goalConfigGenerator_) {
-	goalConfigGenerator_->resetConstraints();
-	delete goalConfigGenerator_;
-      }
-
       if(configurationExtendor_) {
 	configurationExtendor_->resetConstraints();
 	delete configurationExtendor_;

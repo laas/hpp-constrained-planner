@@ -53,6 +53,8 @@ namespace hpp {
 
     Planner::~Planner()
     {
+      if (goalConfigGenerator_) delete goalConfigGenerator_;
+      if (configurationExtendor_) delete configurationExtendor_;
     }
 
     void

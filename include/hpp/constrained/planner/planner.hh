@@ -52,7 +52,7 @@ namespace hpp {
       Planner();
 
       /// Destructor.
-      ~Planner();
+      virtual ~Planner();
 
       /// Build a stack of constraints corresponding to fixed double support
       /// stability.
