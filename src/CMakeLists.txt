@@ -22,8 +22,8 @@ SET(${PACKAGE_NAME}_SOURCES
   grasping-planner.cc
   )
 
-ADD_LIBRARY(hpp-constrained-planner 
-  SHARED 
+ADD_LIBRARY(hpp-constrained-planner
+  SHARED
   ${${PACKAGE_NAME}_SOURCES}
   )
 

@@ -32,6 +32,7 @@ namespace hpp {
     class GraspingPlanner : public Planner
     {
     public:
+      static size_type robotId;
       /**
        * \brief Constructor.
        */

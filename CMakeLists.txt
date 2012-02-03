@@ -25,6 +25,7 @@ SET(PROJECT_DESCRIPTION "HPP classes used for humanoid motion planning on constr
 SET(PROJECT_URL "https://github.com/laas/hpp-constrained-planner")
 
 SET(${PROJECT_NAME}_HEADERS
+  ${CMAKE_SOURCE_DIR}/include/hpp/constrained/planner/fwd.hh
   ${CMAKE_SOURCE_DIR}/include/hpp/constrained/planner/planner.hh
   ${CMAKE_SOURCE_DIR}/include/hpp/constrained/planner/grasping-planner.hh
 )

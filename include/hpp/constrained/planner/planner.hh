@@ -19,7 +19,7 @@
 #ifndef HPP_CONSTRAINED_PLANNER_HH
 #define HPP_CONSTRAINED_PLANNER_HH
 
-#include <vector>
+#include <deque>
 
 #include <KineoWorks2/kwsDiffusionShooter.h>
 
@@ -29,6 +29,7 @@
 #include <hpp/core/planner.hh>
 
 #include <hpp/constrained/fwd.hh>
+#include "hpp/constrained/planner/fwd.hh"
 
 namespace hpp {
   namespace constrained {
@@ -48,6 +49,7 @@ namespace hpp {
     class Planner : public hpp::core::Planner
     {
     public:
+      typedef unsigned int size_type;
       /// Constructor.
       Planner();
 
@@ -93,6 +95,43 @@ namespace hpp {
       buildDoubleSupportSlidingStaticStabilityConstraints
       (CkwsConfigShPtr i_config, std::vector<CjrlGikStateConstraint*> & o_soc);
 
+      /// \name Problem definition
+      /// @{
+
+      /// \brief Add a Problem to the Problem vector with the associed robot.
+       /// \param robot A shared pointer to a robot
+      /// \param penetration Dynamic penetration for validating direct paths.
+      /// \return KD_OK if success, KD_ERROR otherwise
+
+      /// Call parent implementation and synchronize vector of goal
+      /// configuration generators.
+      virtual ktStatus addHppProblem(CkppDeviceComponentShPtr robot,
+				     double penetration);
+
+      /// \brief Remove a Problem at the end of the Problem vector.
+      /// \return KD_OK if success, KD_ERROR otherwise
+      /// Call parent implementation and synchronize vector of goal
+      /// configuration generators.
+      virtual ktStatus removeHppProblem();
+
+      /// \brief Add a Problem at beginning of the Problem vector
+      /// \param robot A shared pointer to a robot
+      /// \param penetration dynamic penetration for validating direct paths.
+      /// \return KD_OK if success, KD_ERROR otherwise
+
+      /// Call parent implementation and synchronize vector of goal
+      /// configuration generators.
+      virtual ktStatus addHppProblemAtBeginning(CkppDeviceComponentShPtr robot,
+						double penetration);
+
+      /// \brief Remove a Problem at the beginning the Problem vector.
+      /// \return KD_OK if success, KD_ERROR otherwise
+
+      /// Call parent implementation and synchronize vector of goal
+      /// configuration generators.
+      virtual ktStatus removeHppProblemAtBeginning();
+
+      /// @}
       /// Initialize constrained motion planning problem.
 
       /// \note Subclasses must first initialize the goal configuration
@@ -121,12 +160,14 @@ namespace hpp {
       /// Set the goal configuration generator.
       /// \param i_goalConfigGenerator New goal configuration generator
       void
-      setGoalConfigGenerator(GoalConfigGenerator* i_goalConfigGenerator);
+      goalConfigGenerator (unsigned int rank,
+			   GoalConfigGeneratorShPtr goalConfigGenerator);
 
       /// Get the goal configuration generator.
-      /// \return o_goalConfigGenerator Goal configuration generator currently
+      /// \return Goal configuration generator at given rank
       /// used
-      GoalConfigGenerator* getGoalConfigGenerator();
+      GoalConfigGeneratorShPtr
+      goalConfigGenerator(unsigned int rank) const;
 
       /// \brief Set the configuration extendor.
       /// \param i_configExtendor New configuration extendor
@@ -140,7 +181,7 @@ namespace hpp {
 
     private:
       /// Configuration projector used to generate goal configurations.
-      GoalConfigGenerator* goalConfigGenerator_;
+      std::deque <GoalConfigGeneratorShPtr> goalConfigGenerators_;
 
     protected:
       /// Configuration extendor, used by the roadmap builder to plan a

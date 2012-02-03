@@ -32,6 +32,9 @@
 
 namespace hpp {
   namespace constrained {
+    GraspingPlanner::
+    GraspingPlanner::size_type GraspingPlanner::robotId = 0;
+
     GraspingPlanner::GraspingPlanner(bool i_isRightHand,vector3d i_target):
       isRightHand_(i_isRightHand),
       target_(i_target),
@@ -73,10 +76,11 @@ namespace hpp {
       buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,goalSoc);
       goalSoc.push_back(positionConstraint_);
 
-      GoalConfigGenerator* goalConfigGenerator = new GoalConfigGenerator (robot);
-      goalConfigGenerator->setConstraints(goalSoc);
-      goalConfigGenerator->getGikSolver()->weights(weightVector);
-      setGoalConfigGenerator (goalConfigGenerator);
+      GoalConfigGeneratorShPtr gcg =
+	GoalConfigGenerator::create (robot);
+      gcg->setConstraints(goalSoc);
+      gcg->getGikSolver()->weights(weightVector);
+      goalConfigGenerator (robotId, gcg);
 
       /* Initialize planning manifold stack of constraints */
       std::vector<CjrlGikStateConstraint*> planningSoc;

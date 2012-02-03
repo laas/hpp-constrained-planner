@@ -32,6 +32,7 @@
 
 #include <kwsIO/kwsioConfig.h>
 #include <hpp/util/debug.hh>
+#include <hpp/util/exception.hh>
 #include <hpp/model/humanoid-robot.hh>
 
 #include <hpp/constrained/roadmap-builder.hh>
@@ -46,16 +47,14 @@
 namespace hpp {
   namespace constrained {
     Planner::Planner():
-      goalConfigGenerator_(NULL),
-      configurationExtendor_(NULL)
+      goalConfigGenerators_ (),
+      configurationExtendor_ (NULL)
     {
       configurationShooter_ = CkwsShooterConfigSpace::create();
     }
 
     Planner::~Planner()
     {
-      if (goalConfigGenerator_) delete goalConfigGenerator_;
-      if (configurationExtendor_) delete configurationExtendor_;
     }
 
     void
@@ -146,10 +145,10 @@ namespace hpp {
       matrix4d leftAnkleT = leftAnkle->currentTransformation();
 
       matrix4d inverseRightAnkleT,relativeLeftAnkleT;
-      MAL_S4x4_INVERSE ( rightAnkleT,inverseRightAnkleT,double );
-      MAL_S4x4_C_eq_A_by_B ( relativeLeftAnkleT,
+      MAL_S4x4_INVERSE (rightAnkleT,inverseRightAnkleT,double);
+      MAL_S4x4_C_eq_A_by_B (relativeLeftAnkleT,
 			     inverseRightAnkleT,
-			     leftAnkleT );
+			     leftAnkleT);
 
       double rightAnkleHeight = MAL_S4x4_MATRIX_ACCESS_I_J(rightAnkleT,2,3);
 
@@ -165,7 +164,7 @@ namespace hpp {
       vector3d com = robot->positionCenterOfMass();
       vector4d comH(com[0],com[1],com[2],1);
       vector4d relativeComPos;
-      MAL_S4x4_C_eq_A_by_B ( relativeComPos,
+      MAL_S4x4_C_eq_A_by_B (relativeComPos,
 			     inverseRightAnkleT,
 			     comH);
 
@@ -179,15 +178,55 @@ namespace hpp {
       o_soc.push_back(comConstraint);
     }
 
+
+    ktStatus Planner::addHppProblem(CkppDeviceComponentShPtr robot,
+				    double penetration)
+    {
+      model::DeviceShPtr hppRobot = KIT_DYNAMIC_PTR_CAST (model::Device, robot);
+      assert (hppRobot);
+      if (hpp::core::Planner::addHppProblem (robot, penetration) != KD_OK) {
+	return KD_ERROR;
+      }
+      goalConfigGenerators_.push_back (GoalConfigGenerator::create (hppRobot));
+      return KD_OK;
+    }
+
+    ktStatus Planner::removeHppProblem()
+    {
+      if (hpp::core::Planner::removeHppProblem () != KD_OK) {
+	return KD_ERROR;
+      }
+      goalConfigGenerators_.pop_back ();
+      return KD_OK;
+    }
+
+    ktStatus Planner::addHppProblemAtBeginning(CkppDeviceComponentShPtr robot,
+					       double penetration)
+    {
+      model::DeviceShPtr hppRobot = KIT_DYNAMIC_PTR_CAST (model::Device, robot);
+      assert (hppRobot);
+
+      if (hpp::core::Planner::addHppProblemAtBeginning (robot, penetration)
+	  != KD_OK) {
+	return KD_ERROR;
+      }
+      goalConfigGenerators_.push_front (GoalConfigGenerator::create (hppRobot));
+      return KD_OK;
+    }
+
+    ktStatus Planner::removeHppProblemAtBeginning()
+    {
+      if (hpp::core::Planner::removeHppProblemAtBeginning () != KD_OK) {
+	return KD_ERROR;
+      }
+      goalConfigGenerators_.pop_front ();
+      return KD_OK;
+    }
+
     ktStatus
     Planner::initializeProblem()
     {
       std::cout << "Planner::InitializeProblem..." << std::endl;
-
-      if(!goalConfigGenerator_) {
-	std::cerr << "No goal config generator" << std::endl;
-	return KD_ERROR;
-      }
 
       if(!configurationExtendor_){
 	std::cerr << "No configuration extendor" << std::endl;
@@ -203,18 +242,26 @@ namespace hpp {
       }
 
       std::string property,value;
-      property="ComputeZMP"; value="false";robot->setProperty ( property,value );
-      property="TimeStep"; value="0.005";robot->setProperty ( property,value );
-      property="ComputeAccelerationCoM"; value="false";robot->setProperty ( property,value );
-      property="ComputeBackwardDynamics"; value="false";robot->setProperty ( property,value );
-      property="ComputeMomentum"; value="false";robot->setProperty ( property,value );
-      property="ComputeAcceleration"; value="false";robot->setProperty ( property,value );
-      property="ComputeVelocity"; value="false";robot->setProperty ( property,value );
-      property="ComputeSkewCom"; value="false";robot->setProperty ( property,value );
-      property="ComputeCoM"; value="true";robot->setProperty ( property,value );
+      property="ComputeZMP"; value="false";
+      robot->setProperty (property,value);
+      property="TimeStep"; value="0.005";robot->setProperty (property,value);
+      property="ComputeAccelerationCoM"; value="false";
+      robot->setProperty (property,value);
+      property="ComputeBackwardDynamics"; value="false";
+      robot->setProperty (property,value);
+      property="ComputeMomentum"; value="false";
+      robot->setProperty (property,value);
+      property="ComputeAcceleration"; value="false";
+      robot->setProperty (property,value);
+      property="ComputeVelocity"; value="false";
+      robot->setProperty (property,value);
+      property="ComputeSkewCom";
+      value="false";robot->setProperty (property,value);
+      property="ComputeCoM"; value="true";robot->setProperty (property,value);
 
       CkwsRoadmapShPtr roadmap = CkwsRoadmap::create(robot);
-      CkwsDiffusingRdmBuilderShPtr rdmBuilder = DiffusingRoadmapBuilder::create(roadmap,configurationExtendor_);
+      CkwsDiffusingRdmBuilderShPtr rdmBuilder =
+	DiffusingRoadmapBuilder::create(roadmap,configurationExtendor_);
 
       CkwsDiffusionShooterShPtr shooter = CkwsShooterConfigSpace::create();
       rdmBuilder->diffusionShooter(shooter);
@@ -222,23 +269,18 @@ namespace hpp {
       rdmBuilder->diffuseFromProblemStart(true);
       rdmBuilder->diffuseFromProblemGoal(true);
 
-      roadmapBuilderIthProblem ( 0, rdmBuilder);
+      roadmapBuilderIthProblem (0, rdmBuilder);
       steeringMethodIthProblem(0, CkppSMLinearComponent::create ());
 
-      KwsConstraintShPtr constraint = KwsConstraint::create("Whole-Body Constraint", configurationExtendor_);
+      KwsConstraintShPtr constraint = KwsConstraint::create
+	("Whole-Body Constraint", configurationExtendor_);
       robot->userConstraints()->add(constraint);
 
       CkwsConfigShPtr initConfig;
       robot->getCurrentConfig(initConfig);
       initConfIthProblem(0,initConfig);
-      robot->addConfigComponent(CkppConfigComponent::create(initConfig,std::string("Init config")));
-
-      if (generateGoalConfigurations(0,1) != KD_OK) {
-	std::cerr << "Failed to generate goal configs" << std::endl;
-	return KD_ERROR;
-      }
-
-      std::cout << "Found goal configurations" << std::endl;
+      robot->addConfigComponent(CkppConfigComponent::create
+				(initConfig,std::string("Init config")));
 
       CkwsLoopOptimizerShPtr optimizer =
 	CkwsRandomOptimizer::create();
@@ -255,8 +297,10 @@ namespace hpp {
     Planner::generateGoalConfigurations(unsigned int rank,
 					unsigned int nb_configs)
     {
-      if (!goalConfigGenerator_) {
-	hppDout (error, "goalConfigGenerator_ not defined.");
+      GoalConfigGeneratorShPtr goalConfigGenerator =
+	goalConfigGenerators_ [rank];
+      if (!goalConfigGenerator) {
+	hppDout (error, "No goal config generator defined.");
 	return KD_ERROR;
       }
       CkppDeviceComponentShPtr robot = robotIthProblem(rank);
@@ -265,40 +309,25 @@ namespace hpp {
       CkwsConfigShPtr currentCfg;
       robot->getCurrentConfig(currentCfg);
 
-
       unsigned int nb_validConfigs=0;
       unsigned int nb_try=0;
-      unsigned int nb_maxTry=50;
-      while ( (nb_try < nb_maxTry)
-	      && (nb_validConfigs < nb_configs) ) { //Shoot config
-
+      unsigned int nb_maxTry=10;
+      while (nb_try < nb_maxTry) {
 	CkwsConfigShPtr randomConfig = CkwsConfig::create(*currentCfg);
-	CkwsDiffusionShooter::gaussianShoot(*randomConfig,0.01);
-
-	if (goalConfigGenerator_->project(*randomConfig) == KD_OK) {
-	  //Projection worked
-	  hppDout (info, "config: " << *randomConfig);
-	  robot->setCurrentConfig(*randomConfig);
-
-	  if(!robot->collisionTest()) { //Configuration is collision free
-	    hppDout (info, "is collision free.");
-	    CkwsNodeShPtr newNode(rdmBuilder->roadmapNode(*randomConfig));
-	    goalConfIthProblem(rank,randomConfig);
-	    if (rdmBuilder->addGoalNode(newNode) == KD_OK) {
-	      nb_validConfigs++;
-	    } else {
-	      hppDout (info,
-		       "but could not be added as goal config to the roadmap.");
-	    }
+	try {
+	  goalConfigGenerator->generate (*randomConfig);
+	  CkwsNodeShPtr newNode(rdmBuilder->roadmapNode(*randomConfig));
+	  goalConfIthProblem(rank,randomConfig);
+	  if (rdmBuilder->addGoalNode(newNode) == KD_OK) {
+	    nb_validConfigs++;
+	  } else {
+	    hppDout (info,
+		     "but could not be added as goal config to the roadmap.");
 	  }
-	  else {
-	    hppDout (info, "is in collision.");
-	  }
-	} else {
-	  hppDout (info, "Projection failed: " << *randomConfig);
+	} catch (const Exception& exc) {
+	  hppDout (info, exc.what ());
+	  nb_try++;
 	}
-
-	nb_try++;
       }
       if (nb_validConfigs < nb_configs) {
 	hppDout (error, "Failed to generate " << nb_configs
@@ -309,15 +338,17 @@ namespace hpp {
       return KD_OK;
     }
 
-    void
-    Planner::setGoalConfigGenerator(GoalConfigGenerator* goalConfigGenerator)
+    void Planner::
+    goalConfigGenerator(unsigned int rank,
+			   GoalConfigGeneratorShPtr goalConfigGenerator)
     {
-      goalConfigGenerator_ = goalConfigGenerator;
+      goalConfigGenerators_ [rank] = goalConfigGenerator;
     }
 
-    GoalConfigGenerator* Planner::getGoalConfigGenerator()
+    GoalConfigGeneratorShPtr Planner::
+    goalConfigGenerator (unsigned int rank) const
     {
-      return goalConfigGenerator_;
+      return goalConfigGenerators_ [rank];
     }
 
     void
