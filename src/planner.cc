@@ -313,20 +313,19 @@ namespace hpp {
       unsigned int nb_validConfigs=0;
       unsigned int nb_try=0;
       unsigned int nb_maxTry=10;
-      while (nb_try < nb_maxTry) {
+      while (nb_try < nb_maxTry && nb_validConfigs < nb_configs) {
 	CkwsConfigShPtr randomConfig = CkwsConfig::create(*currentCfg);
-	try {
-	  goalConfigGenerator->generate (*randomConfig);
+	if (goalConfigGenerator->generate (*randomConfig)) {
 	  CkwsNodeShPtr newNode(rdmBuilder->roadmapNode(*randomConfig));
 	  goalConfIthProblem(rank,randomConfig);
 	  if (rdmBuilder->addGoalNode(newNode) == KD_OK) {
 	    nb_validConfigs++;
 	  } else {
+	    nb_try++;
 	    hppDout (info,
 		     "but could not be added as goal config to the roadmap.");
 	  }
-	} catch (const Exception& exc) {
-	  hppDout (info, exc.what ());
+	} else {
 	  nb_try++;
 	}
       }
