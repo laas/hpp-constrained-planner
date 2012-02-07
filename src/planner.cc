@@ -140,9 +140,10 @@ namespace hpp {
 
       CjrlJoint * rightAnkle = robot->rightAnkle();
       matrix4d rightAnkleT = rightAnkle->currentTransformation();
-
+      hppDout (info, "rightAnkleT = " << rightAnkleT);
       CjrlJoint * leftAnkle = robot->leftAnkle();
       matrix4d leftAnkleT = leftAnkle->currentTransformation();
+      hppDout (info, "leftAnkleT = " << leftAnkleT);
 
       matrix4d inverseRightAnkleT,relativeLeftAnkleT;
       MAL_S4x4_INVERSE (rightAnkleT,inverseRightAnkleT,double);
