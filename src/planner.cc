@@ -317,7 +317,7 @@ namespace hpp {
 	CkwsConfigShPtr randomConfig = CkwsConfig::create(*currentCfg);
 	if (goalConfigGenerator->generate (*randomConfig)) {
 	  CkwsNodeShPtr newNode(rdmBuilder->roadmapNode(*randomConfig));
-	  goalConfIthProblem(rank,randomConfig);
+	  addGoalConfIthProblem(rank,randomConfig);
 	  if (rdmBuilder->addGoalNode(newNode) == KD_OK) {
 	    nb_validConfigs++;
 	  } else {
