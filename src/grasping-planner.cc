@@ -101,9 +101,9 @@ namespace hpp {
     }
 
     void
-    GraspingPlanner::setTarget(vector3d & i_target)
+    GraspingPlanner::setTarget(const vector3d & target)
     {
-      target_ = i_target;
+      target_ = target;
     }
 
     void

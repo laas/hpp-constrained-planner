@@ -57,7 +57,7 @@ namespace hpp {
        * @param i_target Point target in world frame
        */
       void
-      setTarget(vector3d & i_target);
+      setTarget(const vector3d & target);
 
       /**
        * \brief
