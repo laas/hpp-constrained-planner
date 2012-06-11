@@ -114,9 +114,29 @@ namespace hpp {
       ChppGikTransformationConstraint * ankleConstraint =
 	new ChppGikTransformationConstraint(*robot,*ankle,vector3d(0,0,0),ankleT);
 
-      vector3d comPos = robot->positionCenterOfMass();
+      CjrlFoot* foot = rightFootSupporting ? robot->rightFoot() : robot->leftFoot();
+      vector3d anklePInFoot;
+      foot->getAnklePositionInLocalFrame (anklePInFoot);
+
+      matrix4d ankleTInFoot;
+      ankleTInFoot(0,0) = 1;
+      ankleTInFoot(1,1) = 1;
+      ankleTInFoot(2,2) = 1;
+      ankleTInFoot(3,3) = 1;
+      ankleTInFoot(0,3) = anklePInFoot[0];
+      ankleTInFoot(1,3) = anklePInFoot[1];
+      ankleTInFoot(2,3) = anklePInFoot[2];
+
+      matrix4d footTInAnkle;
+      MAL_S4x4_INVERSE (ankleTInFoot, footTInAnkle, double);
+
+      matrix4d footT;
+      MAL_S4x4_C_eq_A_by_B (footT,
+			    ankleT,
+			    footTInAnkle);
+
       ChppGikComConstraint * comConstraint =
-	new ChppGikComConstraint(*robot,comPos[0],comPos[1]);
+	new ChppGikComConstraint(*robot, footT(0,3), footT(1,3));
 
       o_soc.clear();
       o_soc.push_back(ankleConstraint);
