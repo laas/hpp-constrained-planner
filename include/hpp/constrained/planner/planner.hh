@@ -189,6 +189,13 @@ namespace hpp {
       /// constrained path
       ConfigExtendor * configurationExtendor_;
 
+      /// Configuration extendor used by the ConfigOptimizer
+      ///   Constraints are 
+      ///     \li stability constraints,
+      ///     \li goal task
+      ///   Goal configuration is half-sitting.
+      ConfigExtendor* goalExtendor_;
+
       /// Random configuration shooter used to generate random goal
       /// configurations
       CkwsDiffusionShooterShPtr configurationShooter_;

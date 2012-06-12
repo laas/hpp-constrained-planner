@@ -93,27 +93,9 @@ namespace hpp {
       configurationExtendor_->setConstraints(planningSoc);
       configurationExtendor_->getGikSolver()->weights(weightVector);
 
-      /* Temporary for test, include a kcd box */
-      CkppKCDBoxShPtr box =  CkppKCDBox::create(std::string("Obstacle"),0.7,1.2,0.7);
-      CkitMat4 boxPos;
-      boxPos.translate(0.65,0,0.35);
-      box->setAbsolutePosition(boxPos);
-
-      addObstacle(box,false);
-
-      return (Planner::initializeProblem());
-    }
-
-    void
-    GraspingPlanner::setTarget(const vector3d & target)
-    {
-      target_ = target;
-    }
-
-    void
-    GraspingPlanner::setHand(bool i_isRightHand)
-    {
-      isRightHand_ = i_isRightHand;
+      // Initialize goal configuration optimizer
+      goalExtendor_ = new ConfigExtendor (robot);
+      goalExtendor_->setConstraints (goalSoc);
     }
 
   } //end of namespace constrained
