@@ -67,8 +67,7 @@ namespace hpp {
        * Set the hand performing the task. Must be called before initializeProblem() in order to be taken into account.
        * @param i_isRightHand true if the robot should use its right hand, false if it is the left one
        */
-      void
-      setHand(bool i_isRightHand);
+      void setHand(bool i_isRightHand);
 
      private:
       /**

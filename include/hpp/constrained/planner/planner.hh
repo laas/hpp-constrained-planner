@@ -150,10 +150,8 @@ namespace hpp {
       /// Generate a random configuration about the current robot
       /// configuration, project this configuration using
       /// Planner::goalConfigGenerator_, test for collision. Perform 50
-      /// trials. Each success is added as a goal node to the problem
-      /// roadmap builder. The last success is set as goal
-      /// configuration for the problem
-      /// (hpp::core::Planner::goalConfIthProblem).
+      /// trials. Each success is added as a goal configuration to the problem:
+      /// (hpp::core::Planner::addGoalConfIthProblem).
       ktStatus
       generateGoalConfigurations(unsigned int rank, unsigned int nb_configs);
 
