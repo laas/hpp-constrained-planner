@@ -57,25 +57,59 @@ namespace hpp {
     GraspingPlanner::initializeProblem()
     {
       hpp::model::HumanoidRobotShPtr robot =
-	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot, robotIthProblem (0));
+	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot,
+			     robotIthProblem (robotId));
 
       if (!robot) {
 	return KD_ERROR;
       }
-      CkwsConfigShPtr halfSittingConfig;
-      robot->getCurrentConfig(halfSittingConfig);
+      robot->getCurrentConfig(halfSittingConfig_);
 
+      // Initialize hand
+      setHand (isRightHand_);
+      return (Planner::initializeProblem());
+    }
+
+    void
+    GraspingPlanner::setTarget(const vector3d & target)
+    {
+      target_ = target;
+      if (positionConstraint_) positionConstraint_->worldTarget (target);
+      if (gazeConstraint_) gazeConstraint_->worldTarget (target);
+    }
+
+    void
+    GraspingPlanner::setHand(bool i_isRightHand)
+    {
+      isRightHand_ = i_isRightHand;
+      hpp::model::HumanoidRobotShPtr robot =
+	KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot,
+			     robotIthProblem (robotId));
       /* Build gik solver weights */
       ChppGikMaskFactory maskFactory(&(*robot));
       vectorN weightVector = maskFactory.weightsDoubleSupport ();
 
       /* Initialize hand position constraint */
-      CjrlJoint * wrist = isRightHand_ ? robot->rightWrist() : robot->leftWrist() ;
-      positionConstraint_ = new ChppGikPositionConstraint (*robot,*wrist,vector3d(0,0,0),target_);
+      vector3d handCenter;
+      vector3d thumbAxis;
+      CjrlHand* hand = isRightHand_ ? robot->rightHand() : robot->leftHand();
+      hand->getCenter (handCenter);
+      hand->getThumbAxis (thumbAxis);
+      CjrlJoint* wrist = hand->associatedWrist ();
+      if (positionConstraint_) delete positionConstraint_;
+      positionConstraint_ =
+	new ChppGikPositionConstraint (*robot,*wrist, handCenter,target_);
+      if (orientationConstraint_) delete orientationConstraint_;
+      orientationConstraint_ =
+	new ChppGikParallelConstraint (*robot, *wrist, thumbAxis,
+				       vector3d (0,0,1));
+      gazeConstraint_ =
+	new ChppGikGazeConstraint (*robot, target_);
 
-      /* Initialize goal manifold stack of constraints */
+      // Initialize goal manifold stack of constraints
       std::vector<CjrlGikStateConstraint*>  goalSoc;
-      buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,goalSoc);
+      buildDoubleSupportStaticStabilityConstraints(halfSittingConfig_,
+						   goalSoc);
       goalSoc.push_back(positionConstraint_);
       goalSoc.push_back(orientationConstraint_);
       goalSoc.push_back(gazeConstraint_);
@@ -88,7 +122,9 @@ namespace hpp {
 
       /* Initialize planning manifold stack of constraints */
       std::vector<CjrlGikStateConstraint*> planningSoc;
-      buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,planningSoc);
+      buildDoubleSupportStaticStabilityConstraints(halfSittingConfig_,
+						   planningSoc);
+      if (configurationExtendor_) delete configurationExtendor_;
       configurationExtendor_ = new ConfigExtendor(robot);
       configurationExtendor_->setConstraints(planningSoc);
       configurationExtendor_->getGikSolver()->weights(weightVector);

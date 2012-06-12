@@ -16,10 +16,13 @@
 // along with hpp-constrained-planner.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
+#include <ostream>
+#include <fstream>
 
 #include <KineoWorks2/kwsShooterConfigSpace.h>
 #include <KineoModel/kppConfigComponent.h>
 #include <KineoModel/kppSMLinearComponent.h>
+#include <KineoWorks2/kwsMultiplePlanner.h>
 
 #include <jrl/mal/matrixabstractlayer.hh>
 
@@ -34,13 +37,16 @@
 #include <hpp/util/debug.hh>
 #include <hpp/util/exception.hh>
 #include <hpp/model/humanoid-robot.hh>
+#include <hpp/model/joint.hh>
 
 #include <hpp/constrained/roadmap-builder.hh>
 #include <hpp/constrained/config-projector.hh>
 #include <hpp/constrained/goal-config-generator.hh>
 #include <hpp/constrained/kws-constraint.hh>
+#include <hpp/constrained/config-optimizer.hh>
 
-#include <hpp/constrained/planner/planner.hh>
+#include "hpp/constrained/planner/planner.hh"
+#include "../src/roboptim/path-optimizer.hh"
 
 
 
@@ -303,11 +309,22 @@ namespace hpp {
       robot->addConfigComponent(CkppConfigComponent::create
 				(initConfig,std::string("Init config")));
 
-      CkwsLoopOptimizerShPtr optimizer =
-	CkwsRandomOptimizer::create();
-      optimizer->penetration (hppProblem (0)->penetration ());
+      CkwsLoopOptimizerShPtr randomOptimizer = CkwsRandomOptimizer::create();
+      randomOptimizer->penetration (hppProblem (0)->penetration ());
 
-      pathOptimizerIthProblem(0,optimizer);
+      // Initialize goal configuration optimizer
+      CkwsConfigShPtr halfSittingCfg;
+      robot->getCurrentConfig(halfSittingCfg);
+      std::vector<CkwsPathPlannerShPtr> optVector;
+      if (goalExtendor_) {
+	ConfigOptimizerShPtr goalOptimizer =
+	  ConfigOptimizer::create (robot, goalExtendor_, halfSittingCfg);
+	optVector.push_back (goalOptimizer);
+      }
+      optVector.push_back (randomOptimizer);
+      CkwsMultiplePlannerShPtr combinedOptimizer =
+	CkwsMultiplePlanner::create (optVector);
+      pathOptimizerIthProblem(0, combinedOptimizer);
 
       hppProblem (0)->alwaysOptimize (true);
 
