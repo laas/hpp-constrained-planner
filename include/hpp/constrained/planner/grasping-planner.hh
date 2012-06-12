@@ -21,6 +21,8 @@
 #include <jrl/mal/matrixabstractlayer.hh>
 
 #include <hpp/gik/constraint/position-constraint.hh>
+#include <hpp/gik/constraint/parallel-constraint.hh>
+#include <hpp/gik/constraint/gaze-constraint.hh>
 
 #include <hpp/constrained/planner/planner.hh>
 
@@ -78,11 +80,15 @@ namespace hpp {
        */
       vector3d target_;
 
-      /**
-       * \brief Gik goal task.
-       */
-      ChppGikPositionConstraint * positionConstraint_;
-
+      /// Reaching task: position
+      ChppGikPositionConstraint* positionConstraint_;
+      /// Reaching task: orientation
+      ChppGikParallelConstraint* orientationConstraint_;
+      /// Gaze constraint: look at target
+      ChppGikGazeConstraint* gazeConstraint_;
+      /// Rest configuration of the robot
+      CkwsConfigShPtr halfSittingConfig_;
+      
     };
   } //end of namespace constrained
 } //end of namespace hpp

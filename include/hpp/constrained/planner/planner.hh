@@ -178,6 +178,9 @@ namespace hpp {
       /// \return o_configExtendor Configuration extendor currently used
       ConfigExtendor* getConfigurationExtendor();
 
+      /// Write a path in a openhrp seqplay files
+      ktStatus writeSeqPlayFile (unsigned int rank, unsigned int pathId,
+				 const std::string& prefix);
 
     private:
       /// Configuration projector used to generate goal configurations.

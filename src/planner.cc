@@ -383,5 +383,87 @@ namespace hpp {
       return configurationExtendor_;
     }
 
+    static const double TIME_STEP = 0.005;
+    ktStatus Planner::writeSeqPlayFile (unsigned int rank, unsigned int pathId,
+					const std::string& prefix)
+    {
+      std::ofstream file_pos, file_zmp, file_rpy;
+      file_pos.exceptions (std::ofstream::failbit | std::ofstream::badbit);
+      file_zmp.exceptions (std::ofstream::failbit | std::ofstream::badbit);
+      file_rpy.exceptions (std::ofstream::failbit | std::ofstream::badbit);
+      std::string filename;
+      try {
+	filename = prefix + std::string (".pos");
+	file_pos.open (filename.c_str ());
+	filename = prefix + std::string (".zmp");
+	file_zmp.open (filename.c_str ());
+	filename = prefix + std::string (".hip");
+	file_rpy.open (filename.c_str ());
+      } catch (const std::ofstream::failure& exc) {
+	hppDout (error, "Failed to open file " + filename);
+	return KD_ERROR;
+      }
+      CkwsPathShPtr path (getPath (rank, pathId));
+      double L = path->length ();
+      double T = 24.*L;
+      // Cubic parameterization
+      double p0 = 0;
+      double p1 = 0;
+      double p2 = 3*L/(T*T);
+      double p3 = (-2.*L)/(T*T*T);
+
+       model::HumanoidRobotShPtr robot =
+	 KIT_DYNAMIC_PTR_CAST (model::HumanoidRobot, robotIthProblem (rank));
+
+      for (double t=0; t<=T; t+=TIME_STEP) {
+	CkwsConfig kwsConfig (robot);
+	//double l = t*t*(p2 + t*p3);
+	double l = L*t/T;
+	if (path->getConfigAtDistance (l, kwsConfig) != KD_OK) {
+	  hppDout (error, "failed to get configuration");
+	  return KD_ERROR;
+	}
+	std::vector< double > kwsDofVector;
+	kwsConfig.getDofValues (kwsDofVector);
+	vectorN q (kwsDofVector.size ());
+	robot->kwsToJrlDynamicsDofValues (kwsDofVector, q);
+	if (!robot->hppSetCurrentConfig (kwsConfig)) {
+	  hppDout (error, "Failed to set current configuration.");
+	  return KD_ERROR;
+	}
+	matrix4d waistPos = robot->getRootJoint ()->jrlJoint ()
+	  ->currentTransformation ();
+	vector3d comPos = robot->positionCenterOfMass();
+	comPos (2) = 0;
+	matrix4d invWaistPos;
+	MAL_S4x4_INVERSE (waistPos, invWaistPos, double);
+	vector3d zmp = MAL_S4x4_RET_A_by_B (invWaistPos, comPos);
+
+	file_rpy << t << " " << q [3] << " " << q [4] << " " << q [5]
+		 << std::endl;
+	file_zmp << t << " " << zmp [0] << " " << zmp [1] << " " << zmp [2]
+		 << std::endl;
+	assert (kwsDofVector.size () == 46);
+	file_pos << t << " ";
+	for (std::vector <double>::size_type i=6; i<=28; ++i)
+	  file_pos << kwsDofVector [i] << " ";
+	// Right hand
+	for (std::vector <double>::size_type i=34; i<=40; ++i)
+	  file_pos << kwsDofVector [i] << " ";
+	// Left arm
+	for (std::vector <double>::size_type i=29; i<=33; ++i)
+	  file_pos << kwsDofVector [i] << " ";
+	// Left hand
+	for (std::vector <double>::size_type i=41; i<=45; ++i) {
+	  file_pos << kwsDofVector [i];
+	  if (i < 6+39) file_pos << " ";
+	}
+	file_pos << std::endl;
+      }
+      file_pos.close ();
+      file_zmp.close ();
+      file_rpy.close ();
+      return KD_OK;
+    }
   } //end of namespace constrained
 } //end of namespace hpp

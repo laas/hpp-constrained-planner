@@ -38,9 +38,11 @@ namespace hpp {
     GraspingPlanner::GraspingPlanner(bool i_isRightHand,vector3d i_target):
       isRightHand_(i_isRightHand),
       target_(i_target),
-      positionConstraint_(NULL)
+      positionConstraint_(0),
+      orientationConstraint_ (0),
+      gazeConstraint_ (0)
     {
-      srand(time(NULL));
+      srand(time(0));
     }
 
     GraspingPlanner::~GraspingPlanner()
@@ -75,6 +77,8 @@ namespace hpp {
       std::vector<CjrlGikStateConstraint*>  goalSoc;
       buildDoubleSupportStaticStabilityConstraints(halfSittingConfig,goalSoc);
       goalSoc.push_back(positionConstraint_);
+      goalSoc.push_back(orientationConstraint_);
+      goalSoc.push_back(gazeConstraint_);
 
       GoalConfigGeneratorShPtr gcg =
 	GoalConfigGenerator::create (robot);
