@@ -38,7 +38,8 @@ namespace hpp {
       /**
        * \brief Constructor.
        */
-      GraspingPlanner(bool i_isRightHand = true,vector3d i_target=vector3d(0.6,-0.1,0.9));
+      GraspingPlanner(bool i_isRightHand = true,
+		      vector3d i_target=vector3d(0.,0.,0.));
 
       /**
        * \brief Destructor.
