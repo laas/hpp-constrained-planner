@@ -422,7 +422,7 @@ namespace hpp {
       }
       CkwsPathShPtr path (getPath (rank, pathId));
       double L = path->length ();
-      double T = 24.*L;
+      double T = 12.*L;
       // Cubic parameterization
       double p0 = 0;
       double p1 = 0;
