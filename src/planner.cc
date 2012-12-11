@@ -46,7 +46,7 @@
 #include <hpp/constrained/config-optimizer.hh>
 
 #include "hpp/constrained/planner/planner.hh"
-#include "../src/roboptim/path-optimizer.hh"
+// #include "../src/roboptim/path-optimizer.hh"
 
 
 
