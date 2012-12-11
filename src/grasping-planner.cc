@@ -87,7 +87,7 @@ namespace hpp {
 			     robotIthProblem (robotId));
       /* Build gik solver weights */
       ChppGikMaskFactory maskFactory(&(*robot));
-      vectorN weightVector = maskFactory.weightsDoubleSupport ();
+      vectorN weightVector = maskFactory.wholeBodyMask ();
 
       /* Initialize hand position constraint */
       vector3d handCenter;
