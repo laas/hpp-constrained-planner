@@ -185,6 +185,16 @@ namespace hpp {
       std::deque <GoalConfigGeneratorShPtr> goalConfigGenerators_;
 
     protected:
+      /// \brief Set robot dynamic properties.
+      ///
+      /// \param rank problem rank
+      ///
+      /// \param isDynamic specify whether or not dynamic quantities
+      /// should be computed. In all cases, the center of mass is
+      /// computed.
+      ktStatus setDynamicProperties (const unsigned int rank,
+				     const bool isDynamic);
+
       /// Configuration extendor, used by the roadmap builder to plan a
       /// constrained path
       ConfigExtendor * configurationExtendor_;

@@ -250,6 +250,82 @@ namespace hpp {
       return KD_OK;
     }
 
+    ktStatus Planner::setDynamicProperties (const unsigned int rank,
+					    const bool isDynamic)
+    {
+      CkppDeviceComponentShPtr kppDevice = robotIthProblem (rank);
+      if (!kppDevice)
+	{
+	  hppDout (error, "Null pointer to robot in problem " << rank);
+	  return KD_ERROR;
+	}
+
+      hpp::model::DeviceShPtr robot
+	= KIT_DYNAMIC_PTR_CAST(hpp::model::Device, robotIthProblem (rank));
+      if (!robot)
+	{
+	  hppDout (error, "Robot in problem " << rank
+		   << " is not a hpp robot");
+	  return KD_ERROR;
+	}
+
+      std::string property,value;
+      property="TimeStep"; value="0.005";
+      robot->setProperty (property,value);
+      property="ComputeCoM"; value="true";
+      robot->setProperty (property,value);
+
+      if (isDynamic)
+	{
+	  property="ComputeAccelerationCoM"; value="true";
+	  robot->setProperty (property,value);
+	  property="ComputeBackwardDynamics"; value="true";
+	  robot->setProperty (property,value);
+	  property="ComputeMomentum"; value="true";
+	  robot->setProperty (property,value);
+	  property="ComputeAcceleration"; value="true";
+	  robot->setProperty (property,value);
+	  property="ComputeVelocity"; value="true";
+	  robot->setProperty (property,value);
+	  property="ComputeSkewCom"; value="true";
+	  robot->setProperty (property,value);
+	}
+      else
+	{
+	  property="ComputeAccelerationCoM"; value="false";
+	  robot->setProperty (property,value);
+	  property="ComputeBackwardDynamics"; value="false";
+	  robot->setProperty (property,value);
+	  property="ComputeMomentum"; value="false";
+	  robot->setProperty (property,value);
+	  property="ComputeAcceleration"; value="false";
+	  robot->setProperty (property,value);
+	  property="ComputeVelocity"; value="false";
+	  robot->setProperty (property,value);
+	  property="ComputeSkewCom"; value="false";
+	  robot->setProperty (property,value);
+	}
+
+      // Set ZMP computation property if robot is a humanoid robot.
+      if (KIT_DYNAMIC_PTR_CAST(hpp::model::HumanoidRobot,
+			       robotIthProblem (rank)))
+	if (isDynamic)
+	  {
+	    property="ComputeZMP"; value="true";
+	    robot->setProperty (property,value);
+	  }
+	else
+	  {
+	    property="ComputeZMP"; value="false";
+	    robot->setProperty (property,value);
+	  }
+      else
+	hppDout (notice, "robot at probem " << rank
+		 << " is not a humanoid robot.");
+
+      return KD_OK;
+    }
+
     ktStatus
     Planner::initializeProblem()
     {
@@ -268,23 +344,13 @@ namespace hpp {
 	return KD_ERROR;
       }
 
-      std::string property,value;
-      property="ComputeZMP"; value="false";
-      robot->setProperty (property,value);
-      property="TimeStep"; value="0.005";robot->setProperty (property,value);
-      property="ComputeAccelerationCoM"; value="false";
-      robot->setProperty (property,value);
-      property="ComputeBackwardDynamics"; value="false";
-      robot->setProperty (property,value);
-      property="ComputeMomentum"; value="false";
-      robot->setProperty (property,value);
-      property="ComputeAcceleration"; value="false";
-      robot->setProperty (property,value);
-      property="ComputeVelocity"; value="false";
-      robot->setProperty (property,value);
-      property="ComputeSkewCom";
-      value="false";robot->setProperty (property,value);
-      property="ComputeCoM"; value="true";robot->setProperty (property,value);
+      // Deactivate dynamic quantities computation during geometric
+      // planning.
+      if (KD_OK != setDynamicProperties (0, false))
+	{
+	  hppDout (error, "Could not set dynamic properties for robot.");
+	  return KD_ERROR;
+	}
 
       CkwsRoadmapShPtr roadmap = CkwsRoadmap::create(robot);
       CkwsDiffusingRdmBuilderShPtr rdmBuilder =
