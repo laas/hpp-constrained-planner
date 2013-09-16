@@ -46,6 +46,9 @@ namespace hpp {
     /// problem (see for example the GraspingPlanner class), or initialize
     /// these objects outside the Planner class and pass them through their
     /// respective setters.
+
+    /// Moreover, objects of this class can store a
+    /// hpp::constrained::GoalConfigGenerator per problem.
     class Planner : public hpp::core::Planner
     {
     public:
