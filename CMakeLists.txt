@@ -40,8 +40,8 @@ ENDIF()
 SETUP_PROJECT()
 
 
-ADD_REQUIRED_DEPENDENCY("hpp-constrained")
-ADD_REQUIRED_DEPENDENCY("hpp-core")
+ADD_REQUIRED_DEPENDENCY("hpp-constrained >= 1.0.0")
+ADD_REQUIRED_DEPENDENCY("hpp-core >= 2.3")
 
 # Add dependency toward hpp-constrained-planner library in pkg-config file.
 PKG_CONFIG_APPEND_LIBS("hpp-constrained-planner")
