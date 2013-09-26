@@ -33,7 +33,7 @@
 #include <hpp/gik/constraint/plane-constraint.hh>
 #include <hpp/gik/constraint/parallel-constraint.hh>
 
-#include <kwsIO/kwsioConfig.h>
+#include <hpp/kwsio/configuration.hh>
 #include <hpp/util/debug.hh>
 #include <hpp/util/exception.hh>
 #include <hpp/model/humanoid-robot.hh>
