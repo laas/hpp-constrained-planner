@@ -20,7 +20,6 @@ INCLUDE(cmake/base.cmake)
 INCLUDE(cmake/boost.cmake)
 
 SET(PROJECT_NAME hpp-constrained-planner)
-SET(PROJECT_VERSION 0.1)
 SET(PROJECT_DESCRIPTION "HPP classes used for humanoid motion planning on constrained manifolds.")
 SET(PROJECT_URL "https://github.com/laas/hpp-constrained-planner")
 
