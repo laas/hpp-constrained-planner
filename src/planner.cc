@@ -489,18 +489,12 @@ namespace hpp {
       CkwsPathShPtr path (getPath (rank, pathId));
       double L = path->length ();
       double T = 12.*L;
-      // Cubic parameterization
-      double p0 = 0;
-      double p1 = 0;
-      double p2 = 3*L/(T*T);
-      double p3 = (-2.*L)/(T*T*T);
 
        model::HumanoidRobotShPtr robot =
 	 KIT_DYNAMIC_PTR_CAST (model::HumanoidRobot, robotIthProblem (rank));
 
       for (double t=0; t<=T; t+=TIME_STEP) {
 	CkwsConfig kwsConfig (robot);
-	//double l = t*t*(p2 + t*p3);
 	double l = L*t/T;
 	if (path->getConfigAtDistance (l, kwsConfig) != KD_OK) {
 	  hppDout (error, "failed to get configuration");
