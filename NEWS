@@ -1,3 +1,8 @@
+2013-10-08 Release 1.0.1
+
+    1. Fix compilation warnings.
+    2. Synchronize cmake submodule.
+
 2013-09-26 Release 1.0.0
 
     1. Initial Release.
